@@ -22,8 +22,7 @@ export const Controls = ({ ocrResult, manualInput, onReset }) => {
         <body>
           <canvas id="barcodeCanvas"></canvas>
           <script>
-            import JsBarcode from "jsbarcode"; 
-JsBarcode("#barcodeCanvas", "${barcodeToPrint}", {
+            JsBarcode("#barcodeCanvas", "${barcodeToPrint}", {
               format: "CODE128",
               width: 2,
               height: 100,
