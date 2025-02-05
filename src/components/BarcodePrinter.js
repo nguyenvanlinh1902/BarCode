@@ -8,12 +8,24 @@ const BarcodePrinter = () => {
   const [scanned, setScanned] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [manualInput, setManualInput] = useState('');
+  const [scanMode, setScanMode] = useState('order');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const previewCanvasRef = useRef(null);
   const intervalRef = useRef(null);
 
-  const barcodeArray = ['#YWG38123', '#FWW6346', '#EPR1875'];
+  const orderBarcodeMapping = {
+    '#YWG38123': '12312',
+    '#FWW6346': '444123123444123123',
+    '#EPR1875': '1231232112312321',
+  };
+
+  const barcodeArray = Object.values(orderBarcodeMapping);
+  const orderArray = Object.keys(orderBarcodeMapping);
+
+  const getBarcodeFromOrder = (orderId) => {
+    return orderBarcodeMapping[orderId];
+  };
 
   useEffect(() => {
     if (previewCanvasRef.current && (manualInput || ocrResult)) {
@@ -34,8 +46,15 @@ const BarcodePrinter = () => {
 
   const handlePrint = () => {
     if (!ocrResult && !manualInput) return;
+    let barcodeToPrint = '';
+    if (orderBarcodeMapping[manualInput]) {
+      barcodeToPrint = orderBarcodeMapping[manualInput];
+    } else if (scanMode === 'barcode') {
+      barcodeToPrint = manualInput || ocrResult;
+    } else {
+      return;
+    }
 
-    const barcode = manualInput || ocrResult;
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
 <!DOCTYPE html>
@@ -51,7 +70,7 @@ const BarcodePrinter = () => {
 
     <script>
         window.onload = function() {
-            JsBarcode("#barcodeCanvas", "${barcode}", {
+            JsBarcode("#barcodeCanvas", "${barcodeToPrint}", {
                 format: "CODE128",
                 width: 2,
                 height: 100,
@@ -88,12 +107,19 @@ const BarcodePrinter = () => {
     </style>
 </body>
 </html>
-        `);
+    `);
     printWindow.document.close();
   };
 
   const handleManualInput = (e) => {
-    setManualInput(e.target.value);
+    const input = e.target.value;
+    setManualInput(input);
+    console.log('scanMode', orderBarcodeMapping[input]);
+    if (scanMode === 'order' && orderBarcodeMapping[input]) {
+      setOcrResult(orderBarcodeMapping[input]);
+    } else if (scanMode === 'barcode') {
+      setOcrResult(input);
+    }
   };
 
   const handleReset = () => {
@@ -113,7 +139,6 @@ const BarcodePrinter = () => {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const startCamera = async () => {
     const videoElement = videoRef.current;
     const canvasElement = canvasRef.current;
@@ -145,7 +170,6 @@ const BarcodePrinter = () => {
       const context = canvas.getContext('2d');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       canvas.toBlob((blob) => {
@@ -157,16 +181,25 @@ const BarcodePrinter = () => {
           .then(({ data: { text } }) => {
             if (!isScanning) return;
 
-            const foundBarcode = barcodeArray.find((barcode) =>
-              text.includes(barcode)
-            );
-
-            if (foundBarcode) {
-              setOcrResult(foundBarcode);
-              setScanned(true);
-              stopScanning();
+            if (scanMode === 'order') {
+              const foundOrder = orderArray.find((order) =>
+                text.includes(order)
+              );
+              if (foundOrder) {
+                setManualInput(foundOrder);
+                setOcrResult(getBarcodeFromOrder(foundOrder));
+                setScanned(true);
+                stopScanning();
+              }
             } else {
-              console.log('No matching barcode found, continuing scan...');
+              const foundBarcode = barcodeArray.find((barcode) =>
+                text.includes(barcode)
+              );
+              if (foundBarcode) {
+                setOcrResult(foundBarcode);
+                setScanned(true);
+                stopScanning();
+              }
             }
           })
           .catch((error) => {
@@ -227,12 +260,33 @@ const BarcodePrinter = () => {
 
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
+      <div className={styles.scanModeContainer}>
+        <label>
+          <input
+            type="radio"
+            value="order"
+            checked={scanMode === 'order'}
+            onChange={(e) => setScanMode(e.target.value)}
+          />
+          Quét Order ID
+        </label>
+        <label>
+          <input
+            type="radio"
+            value="barcode"
+            checked={scanMode === 'barcode'}
+            onChange={(e) => setScanMode(e.target.value)}
+          />
+          Quét Barcode
+        </label>
+      </div>
+
       <div className={styles.manualInputContainer}>
         <input
           type="text"
           value={manualInput}
           onChange={handleManualInput}
-          placeholder="Enter barcode text"
+          placeholder={scanMode === 'order' ? 'Nhập Order ID' : 'Nhập Barcode'}
           className={styles.input}
         />
       </div>
