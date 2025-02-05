@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { ManualInput } from './ManualInput';
-import { Controls } from './Controls';
-import { BarcodePreview } from './BarcodePreview';
-import CameraScanner from './CameraScanner';
+import { ManualInput } from '../components/ManualInput';
+import { Controls } from '../components/Controls';
+import { BarcodePreview } from '../components/BarcodePreview';
+import CameraScanner from '../components/CameraScanner';
 
 /**
  * s

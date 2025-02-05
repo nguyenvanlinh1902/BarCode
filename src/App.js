@@ -1,13 +1,19 @@
-import './App.css';
-import BarcodePrinter from './components/BarcodePrinter';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import LoginScreen from './screens/LoginScreen';
+import HomePage from './screens/HomePage';
+import BarcodePrinter from './screens/BarcodePrinter';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <BarcodePrinter />
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginScreen />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/barcode-printer" element={<BarcodePrinter />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
