@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ManualInput } from '../components/ManualInput';
 import { Controls } from '../components/Controls';
 import { BarcodePreview } from '../components/BarcodePreview';

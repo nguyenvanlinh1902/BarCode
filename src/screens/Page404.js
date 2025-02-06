@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import styles from './NotFound.module.css';
+import styles from '../styles/screens/NotFound.module.css';
 
 /**
  * NotFound component displays a 404 error page with formatted date/time and user information
