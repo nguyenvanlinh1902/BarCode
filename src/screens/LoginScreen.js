@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ADMIN_ACCOUNT, SHIPPER_ACCOUNT } from '../constants/accounts';
-import '../styles/LoginScreen.css';
+import '../styles/screens/LoginScreen.css';
 import PrimaryButton from '../components/PrimaryButton';
 
 /**

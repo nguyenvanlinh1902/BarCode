@@ -4,8 +4,8 @@ import { Controls } from '../components/Controls';
 import { BarcodePreview } from '../components/BarcodePreview';
 import CameraScanner from '../components/CameraScanner';
 import * as XLSX from 'xlsx';
-import initialData from '../data/barcodeData.json';
-import '../styles/BarcodePrinter.css';
+import '../styles/screens/BarcodePrinter.css';
+import { firebaseService } from '../services/FirebaseService';
 
 /**
  *
@@ -29,54 +29,50 @@ const BarcodePrinter = () => {
     return mapping;
   };
 
-  const readExistingData = () => {
-    try {
-      const storedData = localStorage.getItem('barcodeData');
-      return storedData ? JSON.parse(storedData) : initialData;
-    } catch (error) {
-      console.error('Error reading existing data:', error);
-      return initialData;
-    }
-  };
-
   const appendAndSaveData = async (newData) => {
     try {
-      const existingData = readExistingData();
-
-      const mergedData = [...existingData];
       newData.forEach((newRow) => {
-        const existingIndex = mergedData.findIndex(
+        const existingIndex = tableData?.findIndex(
           (row) => row.orderId === newRow.orderId
         );
         if (existingIndex >= 0) {
-          mergedData[existingIndex] = {
-            ...mergedData[existingIndex],
+          tableData[existingIndex] = {
+            ...tableData[existingIndex],
             ...newRow,
           };
         } else {
-          mergedData.push(newRow);
+          tableData.push(newRow);
         }
       });
 
-      mergedData.sort((a, b) => a.orderId.localeCompare(b.orderId));
+      tableData.sort((a, b) => a.orderId.localeCompare(b.orderId));
 
-      localStorage.setItem('barcodeData', JSON.stringify(mergedData));
+      localStorage.setItem('barcodeData', JSON.stringify(tableData));
 
-      setTableData(mergedData);
-      setOrderBarcodeMapping(createOrderBarcodeMapping(mergedData));
+      setTableData(tableData);
+      setOrderBarcodeMapping(createOrderBarcodeMapping(tableData));
 
       console.log('Data successfully appended and saved');
-      return mergedData;
+      return tableData;
     } catch (error) {
       console.error('Error appending and saving data:', error);
       return null;
     }
   };
 
+  const fetchData = async () => {
+    try {
+      const data = await firebaseService.getAll('orders');
+      setTableData(data);
+      setOrderBarcodeMapping(createOrderBarcodeMapping(data));
+      console.log('Data from Firebase!/n Data:', data);
+    } catch (err) {
+      console.error('Error fetching barcode data:', err);
+    }
+  };
+
   useEffect(() => {
-    const existingData = readExistingData();
-    setTableData(existingData);
-    setOrderBarcodeMapping(createOrderBarcodeMapping(existingData));
+    fetchData();
   }, []);
 
   const handleScannedCode = (scannedCode) => {
@@ -95,8 +91,7 @@ const BarcodePrinter = () => {
 
   const handlePrintAndUpdateStatus = async (orderId) => {
     try {
-      const existingData = readExistingData();
-      const updatedData = existingData.map((item) => {
+      const updatedData = tableData.map((item) => {
         if (item.orderId === orderId) {
           return { ...item, printed: true };
         }
@@ -183,8 +178,7 @@ const BarcodePrinter = () => {
 
   const handleShipperScan = async (scannedBarcode) => {
     try {
-      const existingData = readExistingData();
-      const updatedData = existingData.map((item) => {
+      const updatedData = tableData.map((item) => {
         if (item.printCode === scannedBarcode) {
           return { ...item, scanned: true };
         }

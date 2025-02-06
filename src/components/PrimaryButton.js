@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/PrimaryButton.css';
+import '../styles/screens/PrimaryButton.css';
 
 /**
  *

@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/globalStyles.css';
+import '../styles/screens/globalStyles.css';
 
 /**
  *

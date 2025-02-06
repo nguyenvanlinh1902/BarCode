@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomButton from '../components/CustomButton';
-import '../styles/globalStyles.css';
+import '../styles/screens/globalStyles.css';
 
 /**
  *
