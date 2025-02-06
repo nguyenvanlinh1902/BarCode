@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ADMIN_ACCOUNT, SHIPPER_ACCOUNT } from '../constants/accounts';
-import '../styles/globalStyles.css';
-import CustomButton from '../components/CustomButton';
+import '../styles/LoginScreen.css';
+import PrimaryButton from '../components/PrimaryButton';
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
@@ -29,29 +29,37 @@ const LoginScreen = () => {
   };
 
   return (
-    <div className="container">
-      <div className="login-form">
-        <h2 className="title">Đăng Nhập</h2>
+    <div className="login-container">
+      <div className="login-card">
+        <h2 className="login-title">Đăng Nhập</h2>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="login-error">{error}</div>}
 
-        <input
-          className="input"
-          type="text"
-          placeholder="Tên đăng nhập"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+        <div className="login-form-group">
+          <input
+            className="login-input"
+            type="text"
+            placeholder="Tên đăng nhập"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </div>
+
+        <div className="login-form-group">
+          <input
+            className="login-input"
+            type="password"
+            placeholder="Mật khẩu"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        <PrimaryButton 
+          className="login-button"
+          label="Đăng Nhập" 
+          onClick={handleLogin} 
         />
-
-        <input
-          className="input"
-          type="password"
-          placeholder="Mật khẩu"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <CustomButton title="Đăng Nhập" onClick={handleLogin} />
       </div>
     </div>
   );
