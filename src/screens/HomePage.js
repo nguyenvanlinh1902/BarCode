@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import CustomButton from '../components/CustomButton';
 import '../styles/globalStyles.css';
 
+/**
+ *
+ * @returns {JSX.Element}
+ * @constructor
+ */
 const HomePage = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
@@ -42,7 +47,7 @@ const HomePage = () => {
     <div>
       <h3 className="welcome-text">Chào mừng Đơn vị vận chuyển</h3>
       <CustomButton
-        title="In mã vạch"
+        title="Quét mã vạch"
         onClick={handlePrint}
         className="action-button"
       />

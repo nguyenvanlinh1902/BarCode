@@ -1,6 +1,15 @@
 import React from 'react';
 import '../styles/PrimaryButton.css';
 
+/**
+ *
+ * @param label
+ * @param onClick
+ * @param className
+ * @param disabled
+ * @returns {JSX.Element}
+ * @constructor
+ */
 const PrimaryButton = ({ label, onClick, className, disabled }) => {
   return (
     <button
@@ -13,4 +22,4 @@ const PrimaryButton = ({ label, onClick, className, disabled }) => {
   );
 };
 
-export default PrimaryButton; 
+export default PrimaryButton;

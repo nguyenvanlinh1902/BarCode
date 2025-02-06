@@ -106,7 +106,6 @@
   color: #ffc107;
 }
 
-/* Thêm styles mới cho bảng shipper */
 .data-table--shipper {
   max-width: 800px;
   margin: 0 auto;
@@ -135,4 +134,18 @@
   .data-table--shipper {
     max-width: 100%;
   }
+}
+
+.barcode-printer__scanner-info {
+  background-color: #e9f5ff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #2c5282;
+}
+
+.barcode-printer__scanner-info p {
+  margin: 0;
+  font-size: 0.9rem;
 } 

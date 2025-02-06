@@ -3,6 +3,11 @@ import Tesseract from 'tesseract.js';
 import JsBarcode from 'jsbarcode';
 import styles from './BarcodePrinter.module.css';
 
+/**
+ *
+ * @returns {JSX.Element}
+ * @constructor
+ */
 const BarcodePrinter = () => {
   const [ocrResult, setOcrResult] = useState('');
   const [scanned, setScanned] = useState(false);
@@ -114,14 +119,12 @@ const BarcodePrinter = () => {
   const handleManualInput = (e) => {
     const input = e.target.value;
     setManualInput(input);
-    console
+    console;
     if (orderBarcodeMapping[input]) {
       setOcrResult(orderBarcodeMapping[input]);
-    } 
-    else if (scanMode === 'barcode') {
+    } else if (scanMode === 'barcode') {
       setOcrResult(input);
-    } 
-    else {
+    } else {
       setOcrResult('');
     }
   };

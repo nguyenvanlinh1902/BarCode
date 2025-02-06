@@ -4,6 +4,11 @@ import LoginScreen from './screens/LoginScreen';
 import HomePage from './screens/HomePage';
 import BarcodePrinter from './screens/BarcodePrinter';
 
+/**
+ *
+ * @returns {JSX.Element}
+ * @constructor
+ */
 function App() {
   return (
     <BrowserRouter>

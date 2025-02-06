@@ -4,6 +4,11 @@ import { ADMIN_ACCOUNT, SHIPPER_ACCOUNT } from '../constants/accounts';
 import '../styles/LoginScreen.css';
 import PrimaryButton from '../components/PrimaryButton';
 
+/**
+ *
+ * @returns {JSX.Element}
+ * @constructor
+ */
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -55,10 +60,10 @@ const LoginScreen = () => {
           />
         </div>
 
-        <PrimaryButton 
+        <PrimaryButton
           className="login-button"
-          label="Đăng Nhập" 
-          onClick={handleLogin} 
+          label="Đăng Nhập"
+          onClick={handleLogin}
         />
       </div>
     </div>

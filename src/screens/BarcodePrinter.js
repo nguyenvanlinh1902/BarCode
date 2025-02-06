@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ManualInput } from '../components/ManualInput';
 import { Controls } from '../components/Controls';
 import { BarcodePreview } from '../components/BarcodePreview';
@@ -79,12 +79,121 @@ const BarcodePrinter = () => {
     setOrderBarcodeMapping(createOrderBarcodeMapping(existingData));
   }, []);
 
-  const handleScanResult = (result) => {
+  const handleScannedCode = (scannedCode) => {
     if (scanMode === 'order') {
-      setManualInput(result);
-      setOcrResult(orderBarcodeMapping[result] || '');
-    } else if (scanMode === 'barcode') {
-      setOcrResult(result);
+      setManualInput(scannedCode);
+      const barcodeValue = orderBarcodeMapping[scannedCode];
+      if (barcodeValue) {
+        setOcrResult(barcodeValue);
+        handlePrintAndUpdateStatus(scannedCode).then();
+      }
+    } else {
+      setOcrResult(scannedCode);
+      handleShipperScan(scannedCode).then();
+    }
+  };
+
+  const handlePrintAndUpdateStatus = async (orderId) => {
+    try {
+      const existingData = readExistingData();
+      const updatedData = existingData.map((item) => {
+        if (item.orderId === orderId) {
+          return { ...item, printed: true };
+        }
+        return item;
+      });
+
+      await appendAndSaveData(updatedData);
+
+      const printWindow = window.open('', '_blank');
+      const barcodeToPrint = orderBarcodeMapping[orderId];
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <title>Print Barcode</title>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.0/JsBarcode.all.min.js"></script>
+        </head>
+        <body>
+          <div class="label">
+            <canvas id="barcodeCanvas"></canvas>
+          </div>
+          <script>
+            window.onload = function() {
+              JsBarcode("#barcodeCanvas", "${barcodeToPrint}", {
+                format: "CODE128",
+                width: 1.5,
+                height: 40,
+                displayValue: true,
+                fontSize: 12,
+                margin: 5
+              });
+              setTimeout(() => window.print(), 500);
+            }
+          </script>
+          <style>
+            @page {
+              size: 2in 1.2in;
+              margin: 0;
+            }
+            
+            body {
+              margin: 0;
+              padding: 0;
+              width: 2in;
+              height: 1.2in;
+            }
+            
+            .label {
+              width: 2in;
+              height: 1.2in;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              padding: 0.08in;
+              box-sizing: border-box;
+            }
+            
+            canvas {
+              max-width: 1.84in;
+              height: auto;
+            }
+            
+            @media print {
+              html, body {
+                width: 2in;
+                height: 1.2in;
+              }
+              
+              .label {
+                page-break-after: always;
+              }
+            }
+          </style>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    } catch (error) {
+      console.error('Error updating printed status:', error);
+    }
+  };
+
+  const handleShipperScan = async (scannedBarcode) => {
+    try {
+      const existingData = readExistingData();
+      const updatedData = existingData.map((item) => {
+        if (item.printCode === scannedBarcode) {
+          return { ...item, scanned: true };
+        }
+        return item;
+      });
+
+      await appendAndSaveData(updatedData);
+    } catch (error) {
+      console.error('Error updating scanned status:', error);
     }
   };
 
@@ -197,7 +306,7 @@ const BarcodePrinter = () => {
         <CameraScanner
           scanMode={scanMode}
           orderBarcodeMapping={orderBarcodeMapping}
-          onScanResult={handleScanResult}
+          onScanResult={handleScannedCode}
           className="barcode-printer__scanner"
         />
         {scanMode === 'order' && (
@@ -218,18 +327,16 @@ const BarcodePrinter = () => {
 
             {((scanMode === 'order' && ocrResult) ||
               (scanMode !== 'order' && manualInput)) && (
-              <BarcodePreview 
+              <BarcodePreview
                 value={ocrResult || manualInput}
-                className="barcode-printer__preview" 
+                className="barcode-printer__preview"
               />
             )}
           </div>
         )}
         <div className="barcode-printer__table-section">
           <table className="data-table">
-            <thead className="data-table__header">
-              {renderTableHeaders()}
-            </thead>
+            <thead className="data-table__header">{renderTableHeaders()}</thead>
             <tbody className="data-table__body">
               {tableData.map((row) => renderTableRow(row))}
             </tbody>
