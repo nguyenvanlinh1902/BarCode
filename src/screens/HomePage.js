@@ -14,7 +14,7 @@ const HomePage = () => {
   }, [userRole, navigate]);
 
   const handlePrint = () => {
-    navigate('/barcode-printers');
+    navigate('/barcode-printer');
   };
 
   const handleLogout = () => {

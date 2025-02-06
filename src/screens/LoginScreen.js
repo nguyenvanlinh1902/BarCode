@@ -16,13 +16,13 @@ const LoginScreen = () => {
       password === ADMIN_ACCOUNT.password
     ) {
       localStorage.setItem('userRole', 'ADMIN');
-      navigate('/barcode-printer');
+      navigate('/home');
     } else if (
       username === SHIPPER_ACCOUNT.username &&
       password === SHIPPER_ACCOUNT.password
     ) {
       localStorage.setItem('userRole', 'SHIPPER');
-      navigate('/barcode-printer');
+      navigate('/home');
     } else {
       setError('Tài khoản hoặc mật khẩu không chính xác');
     }
