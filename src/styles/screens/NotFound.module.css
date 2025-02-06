@@ -1,0 +1,65 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    padding: 20px;
+    text-align: center;
+}
+
+.errorCode {
+    font-size: 120px;
+    font-weight: bold;
+    color: #dc3545;
+    margin: 0;
+    line-height: 1;
+}
+
+.title {
+    font-size: 32px;
+    color: #343a40;
+    margin: 20px 0;
+}
+
+.message {
+    font-size: 18px;
+    color: #6c757d;
+    margin-bottom: 30px;
+}
+
+.info {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.infoItem {
+    margin: 10px 0;
+    color: #495057;
+    font-size: 14px;
+}
+
+.homeButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.homeButton:hover {
+    background-color: #0056b3;
+}
+
+.label {
+    font-weight: bold;
+    margin-right: 8px;
+}

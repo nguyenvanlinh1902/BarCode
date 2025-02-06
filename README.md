@@ -1,12 +1,8 @@
 # Getting Started with Create React App
 
 ## build and deploy
-build app
-### `npm run build`
-
-deploy app
+deploy app to firebase
 ### `npm run deploy`
-
 
 In the project directory, you can run:
 
