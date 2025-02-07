@@ -6,6 +6,8 @@ import CameraScanner from '../components/CameraScanner';
 import * as XLSX from 'xlsx';
 import '../styles/screens/BarcodePrinter.css';
 import { firebaseService } from '../services/FirebaseService';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '../configs/firebase';
 
 /**
  *
@@ -17,7 +19,6 @@ const BarcodePrinter = () => {
   const [ocrResult, setOcrResult] = useState('');
   const [manualInput, setManualInput] = useState('');
   const scanMode = userRole === 'ADMIN' ? 'order' : 'barcode';
-
   const [tableData, setTableData] = useState([]);
   const [orderBarcodeMapping, setOrderBarcodeMapping] = useState({});
 
@@ -31,61 +32,88 @@ const BarcodePrinter = () => {
 
   const appendAndSaveData = async (newData) => {
     try {
+      const updatedData = [...tableData];
+
       newData.forEach((newRow) => {
-        const existingIndex = tableData?.findIndex(
+        const existingIndex = updatedData.findIndex(
           (row) => row.orderId === newRow.orderId
         );
         if (existingIndex >= 0) {
-          tableData[existingIndex] = {
-            ...tableData[existingIndex],
+          // Update existing document
+          const docId = updatedData[existingIndex].id;
+          firebaseService.update('orders', docId, newRow);
+          updatedData[existingIndex] = {
+            ...updatedData[existingIndex],
             ...newRow,
           };
         } else {
-          tableData.push(newRow);
+          // Add new document
+          firebaseService.add('orders', newRow).then((doc) => {
+            updatedData.push(doc);
+          });
         }
       });
 
-      tableData.sort((a, b) => a.orderId.localeCompare(b.orderId));
+      updatedData.sort((a, b) => a.orderId.localeCompare(b.orderId));
+      setTableData(updatedData);
+      setOrderBarcodeMapping(createOrderBarcodeMapping(updatedData));
 
-      localStorage.setItem('barcodeData', JSON.stringify(tableData));
-
-      setTableData(tableData);
-      setOrderBarcodeMapping(createOrderBarcodeMapping(tableData));
-
-      console.log('Data successfully appended and saved');
-      return tableData;
+      console.log('Data successfully appended and saved to Firestore');
+      return updatedData;
     } catch (error) {
       console.error('Error appending and saving data:', error);
       return null;
     }
   };
 
-  const fetchData = async () => {
-    try {
-      const data = await firebaseService.getAll('orders');
-      setTableData(data);
-      setOrderBarcodeMapping(createOrderBarcodeMapping(data));
-      console.log('Data from Firebase!/n Data:', data);
-    } catch (err) {
-      console.error('Error fetching barcode data:', err);
-    }
-  };
-
   useEffect(() => {
+    // Initial data fetch
+    const fetchData = async () => {
+      try {
+        const data = await firebaseService.getAll('orders');
+        setTableData(data);
+        setOrderBarcodeMapping(createOrderBarcodeMapping(data));
+        console.log('Data from Firestore:', data);
+      } catch (err) {
+        console.error('Error fetching barcode data:', err);
+      }
+    };
     fetchData();
-  }, []);
 
-  const handleScannedCode = (scannedCode) => {
+    if (userRole === 'ADMIN') {
+      const q = query(collection(db, 'printRequests'));
+      const unsubscribe = onSnapshot(q, async (snapshot) => {
+        snapshot.docChanges().map(async (change) => {
+          if (change.type === 'added') {
+            const request = { id: change.doc.id, ...change.doc.data() };
+            if (!request.printed) {
+              await handlePrintAndUpdateStatus(request.orderId);
+              await firebaseService.update('printRequests', request.id, {
+                createdAt: new Date().toISOString(),
+                printed: true,
+              });
+            }
+          }
+        });
+      });
+
+      return () => unsubscribe();
+    }
+  }, [userRole]);
+
+  const handleScannedCode = async (scannedCode) => {
     if (scanMode === 'order') {
       setManualInput(scannedCode);
       const barcodeValue = orderBarcodeMapping[scannedCode];
-      if (barcodeValue) {
-        setOcrResult(barcodeValue);
-        handlePrintAndUpdateStatus(scannedCode).then();
-      }
+      setOcrResult(barcodeValue);
+      await firebaseService.add('printRequests', {
+        orderId: scannedCode,
+        printed: false,
+        createdAt: new Date().toISOString(),
+      });
     } else {
       setOcrResult(scannedCode);
-      handleShipperScan(scannedCode).then();
+      await handleShipperScan(scannedCode);
     }
   };
 
@@ -93,12 +121,13 @@ const BarcodePrinter = () => {
     try {
       const updatedData = tableData.map((item) => {
         if (item.orderId === orderId) {
+          firebaseService.update('orders', item.id, { ...item, printed: true });
           return { ...item, printed: true };
         }
         return item;
       });
 
-      await appendAndSaveData(updatedData);
+      setTableData(updatedData);
 
       const printWindow = window.open('', '_blank');
       const barcodeToPrint = orderBarcodeMapping[orderId];
@@ -180,21 +209,31 @@ const BarcodePrinter = () => {
     try {
       const updatedData = tableData.map((item) => {
         if (item.printCode === scannedBarcode) {
+          firebaseService.update('orders', item.id, { ...item, scanned: true });
           return { ...item, scanned: true };
         }
         return item;
       });
 
-      await appendAndSaveData(updatedData);
+      setTableData(updatedData);
     } catch (error) {
       console.error('Error updating scanned status:', error);
     }
   };
 
-  const handleManualInputChange = (input) => {
+  const handleManualInputChange = async (input) => {
     setManualInput(input);
     if (scanMode === 'order') {
-      setOcrResult(orderBarcodeMapping[input] || '');
+      const barcodeValue = orderBarcodeMapping[input] || '';
+      setOcrResult(barcodeValue);
+
+      if (barcodeValue) {
+        await firebaseService.add('printRequests', {
+          orderId: barcodeValue,
+          printed: false,
+          createdAt: new Date().toISOString(),
+        });
+      }
     } else {
       setOcrResult(input);
     }
