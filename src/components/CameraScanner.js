@@ -12,13 +12,15 @@ import Tesseract from 'tesseract.js';
 const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const [scanSuccess, setScanSuccess] = useState(false);
+  const [detectedText, setDetectedText] = useState('');
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const intervalRef = useRef(null);
 
   const barcodeArray = Object.values(orderBarcodeMapping);
   const orderArray = Object.keys(orderBarcodeMapping);
-
+  console.log('scanMode', scanMode);
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -64,10 +66,13 @@ const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
       Tesseract.recognize(blob, 'eng')
         .then(({ data: { text } }) => {
           if (scanMode === 'order') {
-            const foundOrder = orderArray.find((order) => text.includes(order));
+        
+            const foundOrder = orderArray.find(order => text.includes(order));
+            setDetectedText(foundOrder);
             if (foundOrder) {
               onScanResult(foundOrder);
               setScanned(true);
+              setScanSuccess(true);
               stopScanning();
             }
           } else {
@@ -77,6 +82,7 @@ const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
             if (foundBarcode) {
               onScanResult(foundBarcode);
               setScanned(true);
+              setScanSuccess(true);
               stopScanning();
             }
           }
@@ -107,6 +113,7 @@ const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
   };
 
   useEffect(() => {
+    handleStartScanning();
     return () => {
       stopScanning();
     };
@@ -115,19 +122,40 @@ const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
   return (
     <div>
       {isScanning && (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          style={{ width: '100%', maxWidth: '400px' }}
-        />
+        <>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            style={{ width: '100%', maxWidth: '400px' }}
+          />
+          <div style={{
+            marginTop: '10px',
+            padding: '10px',
+            border: '1px solid #ccc',
+            borderRadius: '5px',
+            backgroundColor: '#f5f5f5',
+            maxWidth: '400px'
+          }}>
+            <strong>Dữ liệu đang quét được:</strong>
+            <div style={{ 
+              wordBreak: 'break-all',
+              maxHeight: '100px',
+              overflowY: 'auto'
+            }}>
+              {detectedText || 'Đang quét...'}
+            </div>
+          </div>
+        </>
       )}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
+      
+      {scanSuccess && <div style={{ color: 'green' }}>Quét thành công!</div>}
 
       {!isScanning ? (
-        <button onClick={handleStartScanning}>Start Scanning</button>
+        <button onClick={handleStartScanning}>Bắt đầu quét</button>
       ) : (
-        <button onClick={stopScanning}>Stop Scanning</button>
+        <button onClick={stopScanning}>Dừng quét</button>
       )}
     </div>
   );

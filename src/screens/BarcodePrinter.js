@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useOrderData } from '../hooks/useOrderData';
 import { FileUpload } from '../components/FileUpload';
 import CameraScanner from '../components/CameraScanner';
@@ -10,6 +10,10 @@ import { usePrintRequests } from '../hooks/usePrintRequests';
 import { firebaseService } from '../services/FirebaseService';
 import '../styles/screens/BarcodePrinter.css';
 
+/**
+ * BarcodePrinter component
+ * @returns {JSX.Element}
+ */
 const BarcodePrinter = () => {
   const userRole = localStorage.getItem('userRole');
   const [ocrResult, setOcrResult] = useState('');

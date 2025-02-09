@@ -9,7 +9,7 @@ import PrimaryButton from '../components/PrimaryButton';
  * @returns {JSX.Element}
  * @constructor
  */
-const LoginScreen = () => {
+const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,17 +20,19 @@ const LoginScreen = () => {
       username === ADMIN_ACCOUNT.username &&
       password === ADMIN_ACCOUNT.password
     ) {
-      localStorage.setItem('userRole', 'ADMIN');
+      onLogin('ADMIN');
       navigate('/home');
     } else if (
       username === SHIPPER_ACCOUNT.username &&
+
       password === SHIPPER_ACCOUNT.password
     ) {
-      localStorage.setItem('userRole', 'SHIPPER');
+      onLogin('SHIPPER');
       navigate('/home');
     } else {
       setError('Tài khoản hoặc mật khẩu không chính xác');
     }
+
   };
 
   return (

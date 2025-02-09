@@ -12,58 +12,56 @@ const HomePage = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
 
-  useEffect(() => {
-    if (!userRole) {
-      navigate('/login');
-    }
-  }, [userRole, navigate]);
-
-  const handlePrint = () => {
-    navigate('/barcode-printer');
+  const features = {
+    ADMIN: [
+      {
+        title: 'In mã vạch',
+        description: 'Tạo và in mã vạch cho các đơn hàng',
+        icon: '🖨️',
+        path: '/print-barcode'
+      },
+      {
+        title: 'Quét mã vạch',
+        description: 'Quét và xác nhận mã vạch đơn hàng',
+        icon: '📱',
+        path: '/scan-barcode'
+      },
+      {
+        title: 'Lịch sử',
+        description: 'Xem lịch sử in và quét mã vạch',
+        icon: '📋',
+        path: '/history'
+      }
+    ],
+    SHIPPER: [
+      {
+        title: 'Quét mã vạch',
+        description: 'Quét mã vạch để xác nhận đơn hàng',
+        icon: '📱',
+        path: '/scan-barcode'
+      },
+      {
+        title: 'Lịch sử',
+        description: 'Xem lịch sử quét mã vạch',
+        icon: '📋',
+        path: '/history'
+      }
+    ]
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    navigate('/login');
-  };
-
-  const renderAdminContent = () => (
-    <div>
-      <h3 className="welcome-text">Chào mừng Admin</h3>
-      <CustomButton
-        title="In mã vạch"
-        onClick={handlePrint}
-        className="action-button"
-      />
-      <CustomButton
-        title="Quản lý người dùng"
-        onClick={() => alert('Chức năng đang phát triển')}
-        className="action-button"
-      />
-    </div>
-  );
-
-  const renderShipperContent = () => (
-    <div>
-      <h3 className="welcome-text">Chào mừng Đơn vị vận chuyển</h3>
-      <CustomButton
-        title="Quét mã vạch"
-        onClick={handlePrint}
-        className="action-button"
-      />
-    </div>
-  );
+  const currentFeatures = features[userRole] || [];
 
   return (
-    <div className="container">
-      <div className="content">
-        {userRole === 'ADMIN' ? renderAdminContent() : renderShipperContent()}
-
-        <CustomButton
-          title="Đăng xuất"
-          onClick={handleLogout}
-          className="logout-button"
-        />
+    <div className="home-container">
+      <h1>Chào mừng đến với Hệ thống quản lý mã vạch</h1>
+      <div className="features-grid">
+        {currentFeatures.map((feature, index) => (
+          <div key={index} className="feature-card" onClick={() => navigate(feature.path)}>
+            <div className="feature-icon">{feature.icon}</div>
+            <h3>{feature.title}</h3>
+            <p>{feature.description}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
