@@ -39,16 +39,36 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app">
-        {userRole && <Sidebar isOpen={isNavOpen} onToggle={toggleNav} onlogOut={updateUserRole} />}
-        <div className={`main-content ${userRole ? `with-sidebar ${isNavOpen ? 'nav-open' : 'nav-closed'}` : ''}`}>
+        {userRole && (
+          <Sidebar
+            isOpen={isNavOpen}
+            onToggle={toggleNav}
+            onlogOut={updateUserRole}
+          />
+        )}
+        <div
+          className={`main-content ${userRole ? `with-sidebar ${isNavOpen ? 'nav-open' : 'nav-closed'}` : ''}`}
+        >
           <div className="screen-container">
             <Routes>
-              <Route path={`${baseUrl}/login`} element={<LoginScreen onLogin={updateUserRole} />} />
-              <Route path={`${baseUrl}/home`} element={<HomePage />} />
-              <Route path={`${baseUrl}/print-barcode`} element={<PrintBarcode />} />
-              <Route path={`${baseUrl}/scan-barcode`} element={<ScanBarcode />} />
-              <Route path={`${baseUrl}/history`} element={<History />} />
-              <Route path={`${baseUrl}/`} element={<Navigate to="/login" replace />} />
+              <Route
+                path={`${baseUrl}/login`}
+                element={<LoginScreen onLogin={updateUserRole} />}
+              />
+              {/*<Route path={`${baseUrl}/home`} element={<HomePage />} />*/}
+              <Route
+                path={`${baseUrl}/print-barcode`}
+                element={<PrintBarcode />}
+              />
+              <Route
+                path={`${baseUrl}/scan-barcode`}
+                element={<ScanBarcode />}
+              />
+              {/*<Route path={`${baseUrl}/history`} element={<History />} />*/}
+              <Route
+                path={`${baseUrl}/`}
+                element={<Navigate to="/login" replace />}
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

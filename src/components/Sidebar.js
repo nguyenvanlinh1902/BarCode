@@ -7,16 +7,16 @@ const Sidebar = ({ isOpen, onToggle, onlogOut }) => {
   const userRole = localStorage.getItem('userRole');
 
   const adminMenuItems = [
-    { path: '/home', label: 'Trang chủ', icon: '��' },
+    // { path: '/home', label: 'Trang chủ', icon: '��' },
     { path: '/print-barcode', label: 'In mã vạch', icon: '🖨️' },
     { path: '/scan-barcode', label: 'Quét mã vạch', icon: '📱' },
-    { path: '/history', label: 'Lịch sử', icon: '📋' },
+    // { path: '/history', label: 'Lịch sử', icon: '📋' },
   ];
 
   const shipperMenuItems = [
-    { path: '/home', label: 'Trang chủ', icon: '��' },
+    // { path: '/home', label: 'Trang chủ', icon: '��' },/
     { path: '/scan-barcode', label: 'Quét mã vạch', icon: '📱' },
-    { path: '/history', label: 'Lịch sử', icon: '📋' },
+    // { path: '/history', label: 'Lịch sử', icon: '📋' },
   ];
 
   const menuItems = userRole === 'ADMIN' ? adminMenuItems : shipperMenuItems;
@@ -26,7 +26,6 @@ const Sidebar = ({ isOpen, onToggle, onlogOut }) => {
     navigate('/login');
   };
 
-
   return (
     <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="sidebar-header">
@@ -35,7 +34,7 @@ const Sidebar = ({ isOpen, onToggle, onlogOut }) => {
           {isOpen ? '←' : '→'}
         </button>
       </div>
-      
+
       <div className="sidebar-content">
         <div className="sidebar-menu">
           {menuItems.map((item) => (
@@ -50,7 +49,7 @@ const Sidebar = ({ isOpen, onToggle, onlogOut }) => {
           ))}
         </div>
       </div>
-      
+
       <div className="sidebar-footer">
         <div className="menu-item logout" onClick={handleLogout}>
           <span className="menu-icon">🚪</span>
@@ -61,4 +60,4 @@ const Sidebar = ({ isOpen, onToggle, onlogOut }) => {
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

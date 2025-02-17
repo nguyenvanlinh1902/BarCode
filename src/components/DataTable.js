@@ -97,10 +97,22 @@ export const DataTable = ({
     const formatDate = (dateString) => {
       if (!dateString) return '';
       try {
-        return new Date(dateString).toLocaleString();
+        return new Date(dateString).toLocaleString('vi-VN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
       } catch (e) {
         return dateString;
       }
+    };
+
+    const getPrintDatesTooltip = (dates) => {
+      if (!dates || dates.length === 0) return 'Chưa in';
+      return dates.map(date => formatDate(date)).join('\n');
     };
 
     if (userRole === 'ADMIN') {
@@ -108,23 +120,26 @@ export const DataTable = ({
         <tr key={row.orderId} className="data-table__row">
           <td className="data-table__cell">{row.orderId}</td>
           <td className="data-table__cell">{row.printCode}</td>
-          <td className="data-table__cell">
+          <td className="data-table__cell" title={`Số lần in: ${row.printCount || 0}\nLịch sử in:\n${getPrintDatesTooltip(row.printDates)}`}>
             <span className={getStatusClass(row.printed)}>
               {row.printed ? 'Yes' : 'No'}
             </span>
           </td>
-          <td className="data-table__cell">{formatDate(row.recipttedAt)}</td>
-          <td className="data-table__cell">
+          <td className="data-table__cell" title={`Thời gian nhận: ${formatDate(row.recipttedAt)}`}>
+            {formatDate(row.recipttedAt)}
+          </td>
+          <td className="data-table__cell" title={`Trạng thái quét: ${row.scanned ? 'Đã quét' : 'Chưa quét'}`}>
             <span className={getStatusClass(row.scanned)}>
               {row.scanned ? 'Yes' : 'No'}
             </span>
           </td>
-          <td className="data-table__cell">{row.serries}</td>
+          <td className="data-table__cell" title={`Series: ${row.serries || 'Không có'}`}>
+            {row.serries}
+          </td>
           <td className="data-table__cell data-table__cell--actions">
             <button
               className="action-button"
               onClick={() => handleScannedCode(row.orderId)}
-              disabled={row.printed}
             >
               Print
             </button>

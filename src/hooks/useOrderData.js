@@ -9,6 +9,8 @@ import { firebaseService } from '../services/FirebaseService';
 export const useOrderData = () => {
   const [tableData, setTableData] = useState([]);
   const [orderBarcodeMapping, setOrderBarcodeMapping] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const createOrderBarcodeMapping = useCallback((data) => {
     return data.reduce((acc, row) => {
@@ -29,77 +31,89 @@ export const useOrderData = () => {
 
       setTableData(updatedData);
 
-      const printWindow = window.open('', '_blank');
       const barcodeToPrint = orderBarcodeMapping[orderId];
-
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <title>Print Barcode</title>
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.0/JsBarcode.all.min.js"></script>
-        </head>
-        <body>
-          <div class="label">
-            <canvas id="barcodeCanvas"></canvas>
-          </div>
-          <script>
-            window.onload = function() {
-              JsBarcode("#barcodeCanvas", "${barcodeToPrint}", {
-                format: "CODE128",
-                width: 1.5,
-                height: 40,
-                displayValue: true,
-                fontSize: 12,
-                margin: 5
-              });
-              setTimeout(() => window.print(), 500);
-            }
-          </script>
-          <style>
-            @page {
-              size: 2in 1.2in;
-              margin: 0;
-            }
-            
-            body {
-              margin: 0;
-              padding: 0;
-              width: 2in;
-              height: 1.2in;
+      const printContent = `
+        <div class="label">
+          <canvas id="barcodeCanvas"></canvas>
+        </div>
+        <style>
+          @page {
+            size: 2in 1.2in;
+            margin: 0;
+          }
+          
+          body {
+            margin: 0;
+            padding: 0;
+            width: 2in;
+            height: 1.2in;
+          }
+          
+          .label {
+            width: 1.97in;
+            height: 1.18in;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.05in;
+            box-sizing: border-box;
+          }
+          
+          canvas {
+            max-width: 1.87in;
+            height: auto;
+          }
+          
+          @media print {
+            html, body {
+              width: 1.97in;
+              height: 1.18in;
             }
             
             .label {
-              width: 1.97in;
-              height: 1.18in;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              padding: 0.05in;
-              box-sizing: border-box;
+              page-break-after: always;
             }
-            
-            canvas {
-              max-width: 1.87in;
-              height: auto;
-            }
-            
-            @media print {
-              html, body {
-                width: 1.97in;
-                height: 1.18in;
-              }
-              
-              .label {
-                page-break-after: always;
-              }
-            }
-          </style>
-        </body>
-        </html>
-      `);
-      printWindow.document.close();
+          }
+        </style>
+      `;
+
+      const blob = new Blob([printContent], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        const iframeDoc = iframe.contentDocument;
+
+        const script = iframeDoc.createElement('script');
+        script.src =
+          'https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.0/JsBarcode.all.min.js';
+
+        script.onload = () => {
+          iframe.contentWindow.JsBarcode('#barcodeCanvas', barcodeToPrint, {
+            format: 'CODE128',
+            width: 1.5,
+            height: 40,
+            displayValue: true,
+            fontSize: 12,
+            margin: 5,
+          });
+
+          setTimeout(() => {
+            iframe.contentWindow.print();
+            setTimeout(() => {
+              URL.revokeObjectURL(blobUrl);
+              iframe.remove();
+            }, 1000);
+          }, 500);
+        };
+
+        iframeDoc.head.appendChild(script);
+      };
+
+      iframe.src = blobUrl;
     } catch (error) {
       console.error('Error updating printed status:', error);
     }
@@ -133,7 +147,7 @@ export const useOrderData = () => {
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
       const formattedData = jsonData.map((row) => ({
-        orderId: row.reference_id_2 || '',
+        orderId: (row.reference_id_2 || '').replace(/\s+/g, ''),
         printCode: row.printcode || '',
         printed: Boolean(row.printed),
         recipttedAt: row.recipttedAt || '',
@@ -149,16 +163,63 @@ export const useOrderData = () => {
     reader.readAsArrayBuffer(file);
   };
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+
+      const [ordersSnapshot, printRequestsSnapshot] = await Promise.all([
+        firebaseService.getOrders(),
+        firebaseService.getPrintRequests(),
+      ]);
+
+      const printRequestsMap = printRequestsSnapshot.docs.reduce((acc, doc) => {
+        const data = doc.data();
+        const orderId = (data.orderId || '').replace(/\s+/g, '');
+        if (!acc[orderId]) {
+          acc[orderId] = [];
+        }
+        acc[orderId].push({
+          ...data,
+          id: doc.id,
+        });
+        return acc;
+      }, {});
+
+      const mergedData = ordersSnapshot.docs.map((doc) => {
+        const orderData = doc.data();
+        const orderId = (orderData.orderId || '').replace(/\s+/g, '');
+        const orderPrintRequests = printRequestsMap[orderId] || [];
+
+        return {
+          ...orderData,
+          id: doc.id,
+          orderId: orderId,
+          printCount: orderPrintRequests.length,
+          lastPrintDate:
+            orderPrintRequests.length > 0
+              ? new Date(
+                  Math.max(
+                    ...orderPrintRequests.map((r) => new Date(r.createdAt))
+                  )
+                )
+              : null,
+          printDates: orderPrintRequests
+            .map((r) => new Date(r.createdAt))
+            .sort((a, b) => b - a),
+        };
+      });
+      console.log(mergedData);
+      setTableData(mergedData);
+      setOrderBarcodeMapping(createOrderBarcodeMapping(mergedData));
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError(error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await firebaseService.getAll('orders');
-        setTableData(data);
-        setOrderBarcodeMapping(createOrderBarcodeMapping(data));
-      } catch (err) {
-        console.error('Error fetching barcode data:', err);
-      }
-    };
     fetchData();
   }, [createOrderBarcodeMapping]);
 
@@ -168,5 +229,7 @@ export const useOrderData = () => {
     handlePrintAndUpdateStatus,
     handleShipperScan,
     handleFileUpload,
+    loading,
+    error,
   };
 };

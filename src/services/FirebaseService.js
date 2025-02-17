@@ -1,11 +1,11 @@
 import {
-  collection,
-  getDocs,
   addDoc,
-  updateDoc,
+  collection,
   doc,
-  where,
+  getDocs,
   query,
+  updateDoc,
+  where,
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '../configs/firebase';
@@ -158,6 +158,27 @@ class FirebaseService {
       await batch.commit();
     } catch (error) {
       console.error('Error updating items batch assignment:', error);
+      throw error;
+    }
+  }
+
+  async getOrders() {
+    try {
+      const ordersRef = collection(db, 'orders');
+      return await getDocs(ordersRef);
+    } catch (error) {
+      console.error('Error getting orders:', error);
+      throw error;
+    }
+  }
+
+  async getPrintRequests() {
+    try {
+      const printRequestsRef = collection(db, 'printRequests');
+      const snapshot = await getDocs(printRequestsRef);
+      return snapshot;
+    } catch (error) {
+      console.error('Error getting print requests:', error);
       throw error;
     }
   }
