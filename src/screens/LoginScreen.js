@@ -6,6 +6,15 @@ import PrimaryButton from '../components/PrimaryButton';
 
 /**
  *
+ * @returns {boolean}
+ */
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+};
+/**
+ *
  * @returns {JSX.Element}
  * @constructor
  */
@@ -21,10 +30,13 @@ const LoginScreen = ({ onLogin }) => {
       password === ADMIN_ACCOUNT.password
     ) {
       onLogin('ADMIN');
-      navigate('/home');
+      if (isMobileDevice()) {
+        navigate('/scan-barcode');
+      } else {
+        navigate('/print-barcode');
+      }
     } else if (
       username === SHIPPER_ACCOUNT.username &&
-
       password === SHIPPER_ACCOUNT.password
     ) {
       onLogin('SHIPPER');
@@ -32,7 +44,6 @@ const LoginScreen = ({ onLogin }) => {
     } else {
       setError('Tài khoản hoặc mật khẩu không chính xác');
     }
-
   };
 
   return (

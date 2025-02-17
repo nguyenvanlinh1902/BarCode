@@ -2,10 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { firebaseService } from '../services/FirebaseService';
 
-/**
- *
- * @returns {{handlePrintAndUpdateStatus: ((function(*): Promise<void>)|*), handleFileUpload: ((function(*): Promise<void>)|*), handleShipperScan: ((function(*): Promise<void>)|*), tableData: *[], orderBarcodeMapping: {}}}
- */
 export const useOrderData = () => {
   const [tableData, setTableData] = useState([]);
   const [orderBarcodeMapping, setOrderBarcodeMapping] = useState({});
@@ -21,6 +17,7 @@ export const useOrderData = () => {
 
   const handlePrintAndUpdateStatus = async (orderId) => {
     try {
+      // Update the data first
       const updatedData = tableData.map((item) => {
         if (item.orderId === orderId) {
           firebaseService.update('orders', item.id, { ...item, printed: true });
@@ -32,93 +29,95 @@ export const useOrderData = () => {
       setTableData(updatedData);
 
       const barcodeToPrint = orderBarcodeMapping[orderId];
-      const printContent = `
-        <div class="label">
-          <canvas id="barcodeCanvas"></canvas>
-        </div>
-        <style>
-          @page {
-            size: 2in 1.2in;
-            margin: 0;
-          }
-          
-          body {
-            margin: 0;
-            padding: 0;
-            width: 2in;
-            height: 1.2in;
-          }
-          
-          .label {
-            width: 1.97in;
-            height: 1.18in;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0.05in;
-            box-sizing: border-box;
-          }
-          
-          canvas {
-            max-width: 1.87in;
-            height: auto;
-          }
-          
-          @media print {
-            html, body {
-              width: 1.97in;
-              height: 1.18in;
-            }
-            
-            .label {
-              page-break-after: always;
-            }
-          }
-        </style>
-      `;
 
-      const blob = new Blob([printContent], { type: 'text/html' });
-      const blobUrl = URL.createObjectURL(blob);
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        throw new Error('Please allow popups for printing');
+      }
 
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
+      // Write the content directly to the new window
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Print Barcode</title>
+            <style>
+              @page {
+                size: 2in 1.2in;
+                margin: 0;
+              }
+              
+              body {
+                margin: 0;
+                padding: 0;
+                width: 2in;
+                height: 1.2in;
+              }
+              
+              .label {
+                width: 1.97in;
+                height: 1.18in;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 0.05in;
+                box-sizing: border-box;
+              }
+              
+              canvas {
+                max-width: 1.87in;
+                height: auto;
+              }
+              
+              @media print {
+                html, body {
+                  width: 1.97in;
+                  height: 1.18in;
+                }
+                
+                .label {
+                  page-break-after: always;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="label">
+              <canvas id="barcodeCanvas"></canvas>
+            </div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.0/JsBarcode.all.min.js"></script>
+            <script>
+              window.onload = function() {
+                JsBarcode("#barcodeCanvas", "${barcodeToPrint}", {
+                  format: "CODE128",
+                  width: 1.5,
+                  height: 40,
+                  displayValue: true,
+                  fontSize: 12,
+                  margin: 5
+                });
+                
+                // Print and close after the barcode is generated
+                setTimeout(() => {
+                  window.print();
+                  setTimeout(() => {
+                    window.close();
+                  }, 500);
+                }, 500);
+              };
+            </script>
+          </body>
+        </html>
+      `);
 
-      iframe.onload = () => {
-        const iframeDoc = iframe.contentDocument;
-
-        const script = iframeDoc.createElement('script');
-        script.src =
-          'https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.0/JsBarcode.all.min.js';
-
-        script.onload = () => {
-          iframe.contentWindow.JsBarcode('#barcodeCanvas', barcodeToPrint, {
-            format: 'CODE128',
-            width: 1.5,
-            height: 40,
-            displayValue: true,
-            fontSize: 12,
-            margin: 5,
-          });
-
-          setTimeout(() => {
-            iframe.contentWindow.print();
-            setTimeout(() => {
-              URL.revokeObjectURL(blobUrl);
-              iframe.remove();
-            }, 1000);
-          }, 500);
-        };
-
-        iframeDoc.head.appendChild(script);
-      };
-
-      iframe.src = blobUrl;
+      printWindow.document.close();
     } catch (error) {
       console.error('Error updating printed status:', error);
     }
   };
 
+  // Rest of the code remains the same...
   const handleShipperScan = async (scannedBarcode) => {
     try {
       const updatedData = tableData.map((item) => {
@@ -208,20 +207,20 @@ export const useOrderData = () => {
             .sort((a, b) => b - a),
         };
       });
-      console.log(mergedData);
+
       setTableData(mergedData);
       setOrderBarcodeMapping(createOrderBarcodeMapping(mergedData));
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
       setError(error);
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, [createOrderBarcodeMapping]);
+  }, []);
 
   return {
     tableData,
