@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from 'react-bootstrap';
 
 /**
  *
@@ -37,13 +38,22 @@ export const Controls = ({ ocrResult, manualInput, onReset }) => {
   };
 
   return (
-    <div>
-      <button onClick={handlePrint} disabled={!ocrResult && !manualInput}>
+    <div className={'flex-column pt-2 '}>
+      <Button
+        variant={'success'}
+        className={'mr-2'}
+        onClick={handlePrint}
+        disabled={!ocrResult && !manualInput}
+      >
         Print Barcode
-      </button>
-      <button onClick={onReset} disabled={!ocrResult && !manualInput}>
+      </Button>
+      <Button
+        variant={'danger'}
+        onClick={onReset}
+        disabled={!ocrResult && !manualInput}
+      >
         Reset
-      </button>
+      </Button>
     </div>
   );
 };

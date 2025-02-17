@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Tesseract from 'tesseract.js';
+import { Button } from 'react-bootstrap';
 
 /**
  *
@@ -15,9 +16,38 @@ const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const intervalRef = useRef(null);
+  const [cameraPermission, setCameraPermission] = useState(true);
 
   const barcodeArray = Object.values(orderBarcodeMapping);
   const orderArray = Object.keys(orderBarcodeMapping);
+
+  async function checkCameraPermission() {
+    try {
+      const permissions = await navigator.permissions.query({ name: 'camera' });
+      switch (permissions.state) {
+        case 'granted':
+          console.log('Camera access granted');
+          return true;
+        case 'prompt':
+          console.log('Camera access prompt');
+          return false;
+        case 'denied':
+          console.log('Camera access denied');
+          return false;
+        default:
+          console.log('Unknown camera access state');
+          return false;
+      }
+    } catch (error) {
+      console.error('Error checking camera permission:', error);
+      return false;
+    }
+  }
+  useEffect(() => {
+    checkCameraPermission().then((permission) => {
+      setCameraPermission(permission);
+    });
+  }, []);
 
   const startCamera = async () => {
     try {
@@ -99,11 +129,11 @@ const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
       videoRef.current.srcObject = null;
     }
   };
-
-  const handleStartScanning = () => {
+  const handleStartScanning = async () => {
+    if (!cameraPermission) return;
     setIsScanning(true);
     setScanned(false);
-    startCamera();
+    await startCamera();
   };
 
   useEffect(() => {
@@ -114,6 +144,12 @@ const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
 
   return (
     <div>
+      {!cameraPermission ? (
+        <div>
+          Camera access denied or not granted. Please enable camera access in
+          your browser settings.
+        </div>
+      ) : null}
       {isScanning && (
         <video
           ref={videoRef}
@@ -123,11 +159,14 @@ const CameraScanner = ({ scanMode, orderBarcodeMapping, onScanResult }) => {
         />
       )}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
-
       {!isScanning ? (
-        <button onClick={handleStartScanning}>Start Scanning</button>
+        <Button variant="primary" onClick={handleStartScanning}>
+          Start Scanning
+        </Button>
       ) : (
-        <button onClick={stopScanning}>Stop Scanning</button>
+        <Button variant={'dark'} onClick={stopScanning}>
+          Stop Scanning
+        </Button>
       )}
     </div>
   );

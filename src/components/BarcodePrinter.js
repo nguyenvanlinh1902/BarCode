@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Tesseract from 'tesseract.js';
 import JsBarcode from 'jsbarcode';
 import styles from './BarcodePrinter.module.css';
+import { Button } from 'react-bootstrap';
 
 /**
  *
@@ -300,29 +301,29 @@ const BarcodePrinter = () => {
 
       <div className={styles.controls}>
         {!isScanning && !scanned && (
-          <button onClick={() => setIsScanning(true)} className={styles.button}>
+          <Button onClick={() => setIsScanning(true)} className={styles.button}>
             Start Scanning
-          </button>
+          </Button>
         )}
         {isScanning && (
-          <button onClick={stopScanning} className={styles.button}>
+          <Button onClick={stopScanning} className={styles.button}>
             Stop Scanning
-          </button>
+          </Button>
         )}
-        <button
+        <Button
           onClick={handlePrint}
           className={styles.button}
           disabled={!ocrResult && !manualInput}
         >
           Print Barcode
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleReset}
           className={`${styles.button} ${styles.resetButton}`}
           disabled={!ocrResult && !isScanning && !manualInput}
         >
           Reset
-        </button>
+        </Button>
       </div>
 
       {(ocrResult || manualInput) && (

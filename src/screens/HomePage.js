@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import CustomButton from '../components/CustomButton';
 import '../styles/screens/globalStyles.css';
 
@@ -9,22 +9,22 @@ import '../styles/screens/globalStyles.css';
  * @constructor
  */
 const HomePage = () => {
-  const navigate = useNavigate();
+  const history = useHistory();
   const userRole = localStorage.getItem('userRole');
 
   useEffect(() => {
     if (!userRole) {
-      navigate('/login');
+      history.push('/login');
     }
-  }, [userRole, navigate]);
+  }, [userRole]);
 
   const handlePrint = () => {
-    navigate('/barcode-printer');
+    history.push('/barcode-printer');
   };
 
   const handleLogout = () => {
     localStorage.removeItem('userRole');
-    navigate('/login');
+    history.push('/login');
   };
 
   const renderAdminContent = () => (
