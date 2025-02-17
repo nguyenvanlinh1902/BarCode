@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Switch, useLocation } from 'react-router-dom';
+import { Route, Switch, useHistory, useLocation } from 'react-router-dom';
 
 import AdminNavbar from '../components/Navbars/Navbar';
 
@@ -8,6 +8,14 @@ import routes from '../routes.js';
 function Admin() {
   const location = useLocation();
   const mainPanel = React.useRef(null);
+
+  const history = useHistory();
+  const userRole = localStorage.getItem('userRole');
+
+  if (!userRole && location.pathname !== '/login') {
+    history.push('/login');
+  }
+
   const getRoutes = (routes) => {
     return routes.map((prop, key) => {
       if (prop.layout === '/admin') {
@@ -40,7 +48,7 @@ function Admin() {
     <>
       <div className="wrapper">
         <div className="main-panel" ref={mainPanel}>
-          <AdminNavbar />
+          {userRole && location.pathname !== '/login' && <AdminNavbar />}
           <div className="content">
             <Switch>{getRoutes(routes)}</Switch>
           </div>

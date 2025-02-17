@@ -13,7 +13,12 @@ const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const userRole = localStorage.getItem('userRole');
   const history = useHistory();
+
+  if (userRole) {
+    history.push('/');
+  }
 
   const handleLogin = () => {
     if (

@@ -17,6 +17,12 @@ const dashboardRoutes = [
     layout: '/admin',
   },
   {
+    path: '/',
+    name: 'home',
+    component: Home,
+    layout: '/admin',
+  },
+  {
     path: '/barcode-printer',
     name: 'Barcode Printer',
     component: BarcodePrinter,

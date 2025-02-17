@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useHistory } from 'react-router-dom';
 import CustomButton from '../components/CustomButton';
 import '../styles/screens/globalStyles.css';
@@ -11,12 +11,6 @@ import '../styles/screens/globalStyles.css';
 const HomePage = () => {
   const history = useHistory();
   const userRole = localStorage.getItem('userRole');
-
-  useEffect(() => {
-    if (!userRole) {
-      history.push('/login');
-    }
-  }, [userRole]);
 
   const handlePrint = () => {
     history.push('/barcode-printer');
