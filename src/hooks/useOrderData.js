@@ -39,7 +39,7 @@ export const useOrderData = () => {
       // Write the content directly to the new window
       printWindow.document.write(`
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
           <head>
             <title>Print Barcode</title>
             <style>
@@ -88,7 +88,21 @@ export const useOrderData = () => {
             </div>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.0/JsBarcode.all.min.js"></script>
             <script>
-              window.onload = function() {
+             function waitForJsBarcode() {
+                return new Promise((resolve) => {
+                  const checkJsBarcode = () => {
+                    if (window.JsBarcode) {
+                      resolve();
+                    } else {
+                      setTimeout(checkJsBarcode, 100);
+                    }
+                  };
+                  checkJsBarcode();
+                });
+              }
+             
+              async function initializePrint() {
+                await waitForJsBarcode();
                 JsBarcode("#barcodeCanvas", "${barcodeToPrint}", {
                   format: "CODE128",
                   width: 1.5,
@@ -97,15 +111,15 @@ export const useOrderData = () => {
                   fontSize: 12,
                   margin: 5
                 });
-                
-                // Print and close after the barcode is generated
+
                 setTimeout(() => {
                   window.print();
                   setTimeout(() => {
                     window.close();
                   }, 500);
                 }, 500);
-              };
+              }
+              initializePrint();
             </script>
           </body>
         </html>
@@ -117,7 +131,6 @@ export const useOrderData = () => {
     }
   };
 
-  // Rest of the code remains the same...
   const handleShipperScan = async (scannedBarcode) => {
     try {
       const updatedData = tableData.map((item) => {
