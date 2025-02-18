@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useOrderData } from '../hooks/useOrderData';
 import { FileUpload } from '../components/FileUpload';
 import { usePrintRequests } from '../hooks/usePrintRequests';
@@ -11,37 +11,14 @@ import { DataTable } from '../components/DataTable';
  * @returns {JSX.Element}
  */
 const PrintBarcode = () => {
-  const [ocrResult, setOcrResult] = useState('');
-  const [manualInput, setManualInput] = useState('');
   const userRole = localStorage.getItem('userRole');
-  const [unassignedItems, setUnassignedItems] = useState([]);
 
-  const {
-    tableData,
-    orderBarcodeMapping,
-    handlePrintAndUpdateStatus,
-    handleFileUpload,
-  } = useOrderData();
+  const { tableData, handlePrintAndUpdateStatus, handleFileUpload } =
+    useOrderData();
 
   usePrintRequests(userRole, handlePrintAndUpdateStatus);
 
-  useEffect(() => {
-    fetchUnassignedItems();
-  }, [tableData]);
-
-  const fetchUnassignedItems = async () => {
-    try {
-      const items = await firebaseService.getUnassignedItems();
-      setUnassignedItems(items);
-    } catch (error) {
-      console.error('Error fetching unassigned items:', error);
-    }
-  };
-
   const handleScannedCode = async (scannedCode) => {
-    setManualInput(scannedCode);
-    const barcodeValue = orderBarcodeMapping[scannedCode];
-    setOcrResult(barcodeValue);
     await firebaseService.add('printRequests', {
       orderId: scannedCode,
       printed: false,
