@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LoginScreen from './screens/LoginScreen';
-import HomePage from './screens/HomePage';
-import NotFound from './screens/Page404';
+import LoginScreen from './pages/LoginScreen';
+import HomePage from './pages/HomePage';
+import NotFound from './pages/Page404';
 import Sidebar from './components/Sidebar';
-import PrintBarcode from './screens/PrintBarcode';
-import ScanBarcode from './screens/ScanBarcode';
-import History from './screens/History';
+import PrintBarcode from './pages/PrintBarcode';
+import ScanBarcode from './pages/ScanBarcode';
+import History from './pages/History';
 import './App.css';
 
 /**
