@@ -1,38 +1,46 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ADMIN_ACCOUNT, SHIPPER_ACCOUNT } from '../constants/accounts';
 import '../styles/screens/LoginScreen.css';
 import PrimaryButton from '../components/PrimaryButton';
 
 /**
  *
+ * @returns {boolean}
+ */
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+};
+/**
+ *
  * @returns {JSX.Element}
  * @constructor
  */
-const LoginScreen = () => {
+const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const userRole = localStorage.getItem('userRole');
-  const history = useHistory();
-
-  if (userRole) {
-    history.push('/');
-  }
+  const navigate = useNavigate();
 
   const handleLogin = () => {
     if (
       username === ADMIN_ACCOUNT.username &&
       password === ADMIN_ACCOUNT.password
     ) {
-      localStorage.setItem('userRole', 'ADMIN');
-      history.push('/home');
+      onLogin('ADMIN');
+      if (isMobileDevice()) {
+        navigate('/scan-barcode');
+      } else {
+        navigate('/print-barcode');
+      }
     } else if (
       username === SHIPPER_ACCOUNT.username &&
       password === SHIPPER_ACCOUNT.password
     ) {
-      localStorage.setItem('userRole', 'SHIPPER');
-      history.push('/home');
+      onLogin('SHIPPER');
+      navigate('/home');
     } else {
       setError('Tài khoản hoặc mật khẩu không chính xác');
     }

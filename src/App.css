@@ -36,3 +36,66 @@
     transform: rotate(360deg);
   }
 }
+
+.app {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  transition: margin-left 0.3s ease;
+  padding: 20px;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.main-content.with-sidebar {
+  margin-left: 250px;
+}
+
+.main-content.with-sidebar.nav-closed {
+  margin-left: 60px;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .main-content {
+    padding: 15px;
+    padding-bottom: 70px; /* Để tránh content bị che bởi bottom navigation */
+  }
+
+  .main-content.with-sidebar,
+  .main-content.with-sidebar.nav-closed,
+  .main-content.with-sidebar.nav-open {
+    margin-left: 0;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main-content.with-sidebar {
+    margin-left: 60px;
+  }
+
+  .main-content.with-sidebar.nav-open {
+    margin-left: 250px;
+  }
+}
+
+/* Responsive container cho các màn hình */
+.screen-container {
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+@media (max-width: 768px) {
+  .screen-container {
+    padding: 0 10px;
+  }
+}

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-
+import React, { useState, useEffect } from 'react';
+import '../styles/DataTable.css';
 /**
  *
  * @param tableData
@@ -15,116 +15,114 @@ export const DataTable = ({
   className,
   handleScannedCode,
 }) => {
-  const [sortConfig, setSortConfig] = useState({
-    key: 'orderId',
-    direction: 'asc',
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filteredData, setFilteredData] = useState([]);
+  const itemsPerPage = 10;
 
-  const handleSort = (key) => {
-    setSortConfig((prevConfig) => ({
-      key,
-      direction:
-        prevConfig.key === key && prevConfig.direction === 'asc'
-          ? 'desc'
-          : 'asc',
-    }));
-  };
+  useEffect(() => {
+    if (!tableData) {
+      setFilteredData([]);
+      return;
+    }
 
-  const sortedData = useMemo(() => {
-    if (!tableData) return [];
-
-    return [...tableData].sort((a, b) => {
-      if (a[sortConfig.key] < b[sortConfig.key]) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (a[sortConfig.key] > b[sortConfig.key]) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
-  }, [tableData, sortConfig]);
-
-  const SortIcon = ({ column }) => {
-    if (sortConfig.key !== column) return null;
-    return (
-      <span className="sort-icon">
-        {sortConfig.direction === 'asc' ? ' ▲' : ' ▼'}
-      </span>
+    const filtered = tableData.filter(
+      (row) =>
+        row.orderId
+          .toString()
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        row.printCode
+          .toString()
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
     );
+    setFilteredData(filtered);
+    setCurrentPage(1);
+  }, [tableData, searchTerm]);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = filteredData.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  const getStatusClass = (status) => {
+    return status
+      ? 'data-table__status data-table__status--success'
+      : 'data-table__status data-table__status--pending';
   };
 
-  const renderSortableHeader = (key, label) => (
-    <th
-      onClick={() => handleSort(key)}
-      className="data-table__header-cell"
-      style={{ cursor: 'pointer' }}
-    >
-      {label}
-      <SortIcon column={key} />
-    </th>
-  );
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      return new Date(dateString).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const getPrintDatesTooltip = (dates) => {
+    if (!dates || dates.length === 0) return 'Chưa in';
+    return dates.map((date) => formatDate(date)).join('\n');
+  };
 
   const renderTableHeaders = () => {
     if (userRole === 'ADMIN') {
       return (
-        <tr>
-          {renderSortableHeader('orderId', 'Order ID')}
-          {renderSortableHeader('printCode', 'Print Code')}
-          {renderSortableHeader('printed', 'Printed')}
-          {renderSortableHeader('recipttedAt', 'Receipted At')}
-          {renderSortableHeader('scanned', 'Scanned')}
-          {renderSortableHeader('serries', 'Series')}
-          <th>Actions</th>
+        <tr className="data-table__header-row">
+          <th className="data-table__header-cell">Order ID</th>
+          <th className="data-table__header-cell">Print Code</th>
+          <th className="data-table__header-cell">Trạng thái In</th>
+          <th className="data-table__header-cell">Trạng thái quét</th>
+          <th className="data-table__header-cell">Actions</th>
         </tr>
       );
     }
     return (
-      <tr>
-        {renderSortableHeader('orderId', 'Order ID')}
-        {renderSortableHeader('printCode', 'Print Code')}
-        {renderSortableHeader('scanned', 'Scanned')}
+      <tr className="data-table__header-row">
+        <th className="data-table__header-cell">Order ID</th>
+        <th className="data-table__header-cell">Print Code</th>
+        <th className="data-table__header-cell">Scanned</th>
       </tr>
     );
   };
 
   const renderTableRow = (row) => {
-    const getStatusClass = (status) => {
-      return status
-        ? 'status-badge status-badge--success'
-        : 'status-badge status-badge--pending';
-    };
-
-    const formatDate = (dateString) => {
-      if (!dateString) return '';
-      try {
-        return new Date(dateString).toLocaleString();
-      } catch (e) {
-        return dateString;
-      }
-    };
-
     if (userRole === 'ADMIN') {
       return (
         <tr key={row.orderId} className="data-table__row">
           <td className="data-table__cell">{row.orderId}</td>
           <td className="data-table__cell">{row.printCode}</td>
-          <td className="data-table__cell">
-            <span className={getStatusClass(row.printed)}>
-              {row.printed ? 'Yes' : 'No'}
+          <td
+            className="data-table__cell"
+            title={`Số lần in: ${row.printCount || 0}\nLịch sử in:\n${getPrintDatesTooltip(row.printDates)}`}
+          >
+            <span className={getStatusClass(row.printCount > 0)}>
+              {row.printCount > 0 ? 'Đã in' : 'Chưa in'}
             </span>
           </td>
-          <td className="data-table__cell">{formatDate(row.recipttedAt)}</td>
-          <td className="data-table__cell">
+          <td
+            className="data-table__cell"
+            title={`Trạng thái quét: ${row.scanned ? 'Đã quét' : 'Chưa quét'}`}
+          >
             <span className={getStatusClass(row.scanned)}>
-              {row.scanned ? 'Yes' : 'No'}
+              {row.scanned ? 'Đã Nhận' : 'Chưa Nhận'}
             </span>
           </td>
-          <td className="data-table__cell">{row.serries}</td>
           <td className="data-table__cell data-table__cell--actions">
             <button
-              className="action-button"
+              variant="outline"
+              className="data-table__button"
               onClick={() => handleScannedCode(row.orderId)}
-              disabled={row.printed}
             >
               Print
             </button>
@@ -138,7 +136,7 @@ export const DataTable = ({
         <td className="data-table__cell">{row.printCode}</td>
         <td className="data-table__cell">
           <span className={getStatusClass(row.scanned)}>
-            {row.scanned ? 'Yes' : 'No'}
+            {row.scanned ? 'Đã Nhận' : 'Chưa nhận'}
           </span>
         </td>
       </tr>
@@ -146,26 +144,71 @@ export const DataTable = ({
   };
 
   return (
-    <div className={`${className} data-table-container`}>
-      <div className="data-table-wrapper">
-        <table className="data-table">
-          <thead className="data-table__header">{renderTableHeaders()}</thead>
-          <tbody className="data-table__body">
-            {sortedData.length > 0 ? (
-              sortedData.map((row) => renderTableRow(row))
-            ) : (
-              <tr>
-                <td
-                  colSpan={userRole === 'ADMIN' ? 7 : 3}
-                  className="data-table__cell data-table__cell--no-data"
-                >
-                  No data available
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+    <div className={`data-table ${className}`}>
+      <div className="data-table__container">
+        <div className="data-table__search">
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo Order ID hoặc Print Code..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="data-table__search-input"
+          />
+        </div>
+
+        <div className="data-table__wrapper">
+          <table className="data-table__table">
+            <thead>{renderTableHeaders()}</thead>
+            <tbody>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((row) => renderTableRow(row))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={userRole === 'ADMIN' ? 5 : 3}
+                    className="data-table__cell data-table__cell--empty"
+                  >
+                    Không có dữ liệu
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="data-table__pagination">
+          <div className="data-table__pagination-info">
+            Hiển thị {Math.min(startIndex + 1, filteredData.length)} -{' '}
+            {Math.min(startIndex + itemsPerPage, filteredData.length)} trong
+            tổng số {filteredData.length} kết quả
+          </div>
+          <div className="data-table__pagination-controls">
+            <button
+              variant="outline"
+              className="data-table__pagination-button"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Trước
+            </button>
+            <span className="data-table__pagination-current">
+              Trang {currentPage} / {totalPages || 1}
+            </span>
+            <button
+              variant="outline"
+              className="data-table__pagination-button"
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
+              Sau
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
+
+export default DataTable;
