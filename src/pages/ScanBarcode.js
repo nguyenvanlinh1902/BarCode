@@ -17,7 +17,7 @@ const ScanBarcode = () => {
 
   const handleScannedCode = async (scannedCode) => {
     setDebugInfo(`Received code: ${scannedCode}`);
-    
+
     try {
       if (scanMode === 'order') {
         await firebaseService.add('printRequests', {
@@ -49,14 +49,12 @@ const ScanBarcode = () => {
         <p>Status: {debugInfo}</p>
       </div>
 
-      <div className="barcode-printer__container">
-        <CameraScanner
-          scanMode={scanMode}
-          orderBarcodeMapping={orderBarcodeMapping}
-          onScanResult={handleScannedCode}
-          className="barcode-printer__scanner"
-        />
-      </div>
+      <CameraScanner
+        scanMode={scanMode}
+        orderBarcodeMapping={orderBarcodeMapping}
+        onScanResult={handleScannedCode}
+        className="barcode-printer__scanner"
+      />
     </div>
   );
 };

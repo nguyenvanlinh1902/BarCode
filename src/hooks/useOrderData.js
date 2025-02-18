@@ -30,13 +30,11 @@ export const useOrderData = () => {
 
       const barcodeToPrint = orderBarcodeMapping[orderId];
 
-      // Create a new window for printing
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         throw new Error('Please allow popups for printing');
       }
 
-      // Write the content directly to the new window
       printWindow.document.write(`
         <!DOCTYPE html>
         <html lang="en">
@@ -56,8 +54,8 @@ export const useOrderData = () => {
               }
               
               .label {
-                width: 1.97in;
-                height: 1.18in;
+                width: 100%;
+                height: 100%;
                 display: flex;
                 justify-content: center;
                 align-items: center;
@@ -66,18 +64,14 @@ export const useOrderData = () => {
               }
               
               canvas {
-                max-width: 1.87in;
-                height: auto;
+                width: 100% !important;
+                height: 100% !important;
               }
               
               @media print {
                 html, body {
-                  width: 1.97in;
-                  height: 1.18in;
-                }
-                
-                .label {
-                  page-break-after: always;
+                  width: 2in;
+                  height: 1.2in;
                 }
               }
             </style>
@@ -105,11 +99,12 @@ export const useOrderData = () => {
                 await waitForJsBarcode();
                 JsBarcode("#barcodeCanvas", "${barcodeToPrint}", {
                   format: "CODE128",
-                  width: 1.5,
-                  height: 40,
+                  width: 2,
+                  height: 50,
                   displayValue: true,
-                  fontSize: 12,
-                  margin: 5
+                  fontSize: 14,
+                  margin: 5,
+                  textMargin: 2
                 });
 
                 setTimeout(() => {
