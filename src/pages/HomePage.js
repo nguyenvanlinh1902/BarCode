@@ -1,6 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import '../styles/screens/globalStyles.css';
+import '../styles/screens/HomePage.css';
 
 /**
  *
@@ -8,7 +9,7 @@ import '../styles/screens/globalStyles.css';
  * @constructor
  */
 const HomePage = () => {
-  const navigate = useNavigate();
+  const history = useHistory();
   const userRole = localStorage.getItem('userRole');
 
   const features = {
@@ -58,7 +59,7 @@ const HomePage = () => {
           <div
             key={index}
             className="feature-card"
-            onClick={() => navigate(feature.path)}
+            onClick={() => history.push(feature.path)}
           >
             <div className="feature-icon">{feature.icon}</div>
             <h3>{feature.title}</h3>

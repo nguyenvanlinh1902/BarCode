@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { ADMIN_ACCOUNT, SHIPPER_ACCOUNT } from '../constants/accounts';
 import '../styles/screens/LoginScreen.css';
 import PrimaryButton from '../components/PrimaryButton';
@@ -18,11 +18,11 @@ const isMobileDevice = () => {
  * @returns {JSX.Element}
  * @constructor
  */
-const LoginScreen = ({ onLogin }) => {
+const LoginScreen = ({ onLogin = () => {} }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const history = useHistory();
 
   const handleLogin = () => {
     if (
@@ -31,16 +31,16 @@ const LoginScreen = ({ onLogin }) => {
     ) {
       onLogin('ADMIN');
       if (isMobileDevice()) {
-        navigate('/scan-barcode');
+        history.push('/scan-barcode');
       } else {
-        navigate('/print-barcode');
+        history.push('/print-barcode');
       }
     } else if (
       username === SHIPPER_ACCOUNT.username &&
       password === SHIPPER_ACCOUNT.password
     ) {
       onLogin('SHIPPER');
-      navigate('/home');
+      history.push('/home');
     } else {
       setError('Tài khoản hoặc mật khẩu không chính xác');
     }

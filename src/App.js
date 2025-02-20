@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import LoginScreen from './pages/LoginScreen';
-import HomePage from './pages/HomePage';
 import NotFound from './pages/Page404';
 import Sidebar from './components/Sidebar';
 import PrintBarcode from './pages/PrintBarcode';
 import ScanBarcode from './pages/ScanBarcode';
-import History from './pages/History';
 import './App.css';
 
 /**
@@ -35,7 +33,6 @@ function App() {
   const toggleNav = () => {
     setIsNavOpen(!isNavOpen);
   };
-
   return (
     <BrowserRouter>
       <div className="app">

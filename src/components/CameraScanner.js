@@ -57,7 +57,9 @@ const CameraScanner = ({
           return;
         }
 
-        if (videoRef.current?.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
+        if (
+          videoRef.current?.readyState === videoRef.current.HAVE_ENOUGH_DATA
+        ) {
           captureFrame();
         }
       }, 500);
@@ -68,7 +70,14 @@ const CameraScanner = ({
   };
 
   const captureFrame = () => {
-    if (!videoRef.current || !canvasRef.current || scanned || waitingForContinue || isProcessing) return;
+    if (
+      !videoRef.current ||
+      !canvasRef.current ||
+      scanned ||
+      waitingForContinue ||
+      isProcessing
+    )
+      return;
 
     setIsProcessing(true);
     const canvas = canvasRef.current;
@@ -176,7 +185,7 @@ const CameraScanner = ({
   };
 
   useEffect(() => {
-    if (orderArray.length > 0) {
+    if (orderArray.length > 0 && !!error) {
       handleStartScanning();
     }
     return () => {
@@ -188,13 +197,13 @@ const CameraScanner = ({
     <div className="scanner">
       {error && <div className="scanner__error">{error}</div>}
 
-      {isScanning && (
+      {isScanning && error && (
         <button onClick={stopScanning} className="scanner__stop-button">
           ✕
         </button>
       )}
 
-      {isScanning && (
+      {isScanning && !error && (
         <>
           <div className="scanner__video-container">
             <video
@@ -211,11 +220,14 @@ const CameraScanner = ({
           )}
         </>
       )}
-      
+
       <canvas ref={canvasRef} className="scanner__canvas" />
 
       {!isScanning && !waitingForContinue && (
-        <button onClick={handleStartScanning} className="scanner__start-button">
+        <button
+          onClick={() => handleStartScanning()}
+          className="scanner__start-button"
+        >
           Start Scanning
         </button>
       )}
@@ -227,7 +239,7 @@ const CameraScanner = ({
             Nhấn "Tiếp tục quét" để quét mã tiếp theo
           </div>
           <button
-            onClick={handleContinueScanning}
+            onClick={() => handleContinueScanning()}
             className="scanner__continue-button"
           >
             Tiếp tục quét

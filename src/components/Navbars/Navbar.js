@@ -3,9 +3,11 @@ import { useLocation } from 'react-router-dom';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 
 import routes from '../../routes.js';
+import { useHistory } from 'react-router-dom';
 
 function Header() {
   const location = useLocation();
+  const history = useHistory();
 
   const getBrandText = () => {
     for (let i = 0; i < routes.length; i++) {
@@ -14,6 +16,11 @@ function Header() {
       }
     }
     return 'Brand';
+  };
+
+  const handleLogout = () => {
+    localStorage.setItem('userRole', null);
+    history.push('/login');
   };
   return (
     <Navbar bg="light" expand="lg">
@@ -48,7 +55,9 @@ function Header() {
                 href="#pablo"
                 onClick={(e) => e.preventDefault()}
               >
-                <span className="no-icon">Log out</span>
+                <span onClick={handleLogout} className="no-icon">
+                  Log out
+                </span>
               </Nav.Link>
             </Nav.Item>
           </Nav>
