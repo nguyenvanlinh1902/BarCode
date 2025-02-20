@@ -1,4 +1,5 @@
 import React from 'react';
+import Form from 'react-bootstrap/Form';
 
 /**
  *
@@ -10,9 +11,10 @@ import React from 'react';
  */
 export const ManualInput = ({ scanMode, value, onChange }) => {
   return (
-    <input
-      type="text"
+    <Form.Control
+      size="lg"
       value={value}
+      type="text"
       onChange={(e) => onChange(e.target.value)}
       placeholder={scanMode === 'order' ? 'Enter Order ID' : 'Enter Barcode'}
     />
